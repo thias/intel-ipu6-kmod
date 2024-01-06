@@ -3,12 +3,12 @@
 %global debug_package %{nil}
 %endif
 
-%global ipu6_commit 8e410803b5d31c2c5bf32961f786d205ba6acc5d
-%global ipu6_commitdate 20230622
+%global ipu6_commit 07f0612eabfdc31df36f5e316a9eae115807804f
+%global ipu6_commitdate 20231124
 %global ipu6_shortcommit %(c=%{ipu6_commit}; echo ${c:0:7})
 
-%global ivsc_commit e8ea8b825217091fa91c9b3cb68cee4101d416e2
-%global ivsc_commitdate 20231009
+%global ivsc_commit 73a044d9633212fac54ea96cdd882ff5ab40573e
+%global ivsc_commitdate 20231109
 %global ivsc_shortcommit %(c=%{ivsc_commit}; echo ${c:0:7})
 
 %global prjname intel-ipu6
@@ -23,11 +23,7 @@ URL:            https://github.com/intel
 Source0:        %{url}/ivsc-driver/archive/%{ivsc_commit}/ivsc-driver-%{ivsc_shortcommit}.tar.gz
 Source1:        %{url}/ipu6-drivers/archive/%{ipu6_commit}/ipu6-drivers-%{ipu6_shortcommit}.tar.gz
 
-
 # Patches
-Patch10:        0001-ipu-psys-Fix-compilation-with-kernels-6.5.0.patch
-Patch11:        0001-ipu6-Fix-compilation-with-kernels-6.6.0.patch
-Patch12:        0001-spi-vsc-Call-acpi_dev_clear_dependencies.patch
 
 BuildRequires:  gcc
 BuildRequires:  elfutils-libelf-devel
@@ -54,12 +50,11 @@ kmodtool  --target %{_target_cpu} --repo rpmfusion --kmodname %{prjname} %{?buil
 
 %setup -q -c -a 1
 (cd ipu6-drivers-%{ipu6_commit}
-%patch10 -p1
-%patch11 -p1
+#patchX -p1
 )
 
 (cd ivsc-driver-%{ivsc_commit}
-%patch12 -p1
+#patchY -p1
 )
 
 cp -Rp ivsc-driver-%{ivsc_commit}/backport-include ipu6-drivers-%{ipu6_commit}/
@@ -82,9 +77,11 @@ for kernel_version in %{?kernel_versions}; do
   install -D -m 755 _kmod_build_${kernel_version%%___*}/drivers/media/i2c/hi556.ko %{buildroot}%{kmodinstdir_prefix}/${kernel_version%%___*}/%{kmodinstdir_postfix}/drivers/media/i2c/hi556.ko
   install -D -m 755 _kmod_build_${kernel_version%%___*}/drivers/media/i2c/hm11b1.ko %{buildroot}%{kmodinstdir_prefix}/${kernel_version%%___*}/%{kmodinstdir_postfix}/drivers/media/i2c/hm11b1.ko
   install -D -m 755 _kmod_build_${kernel_version%%___*}/drivers/media/i2c/hm2170.ko %{buildroot}%{kmodinstdir_prefix}/${kernel_version%%___*}/%{kmodinstdir_postfix}/drivers/media/i2c/hm2170.ko
+  install -D -m 755 _kmod_build_${kernel_version%%___*}/drivers/media/i2c/hm2172.ko %{buildroot}%{kmodinstdir_prefix}/${kernel_version%%___*}/%{kmodinstdir_postfix}/drivers/media/i2c/hm2172.ko
   install -D -m 755 _kmod_build_${kernel_version%%___*}/drivers/media/i2c/ov01a10.ko %{buildroot}%{kmodinstdir_prefix}/${kernel_version%%___*}/%{kmodinstdir_postfix}/drivers/media/i2c/ov01a10.ko
   install -D -m 755 _kmod_build_${kernel_version%%___*}/drivers/media/i2c/ov01a1s.ko %{buildroot}%{kmodinstdir_prefix}/${kernel_version%%___*}/%{kmodinstdir_postfix}/drivers/media/i2c/ov01a1s.ko
   install -D -m 755 _kmod_build_${kernel_version%%___*}/drivers/media/i2c/ov02c10.ko %{buildroot}%{kmodinstdir_prefix}/${kernel_version%%___*}/%{kmodinstdir_postfix}/drivers/media/i2c/ov02c10.ko
+  install -D -m 755 _kmod_build_${kernel_version%%___*}/drivers/media/i2c/ov02e10.ko %{buildroot}%{kmodinstdir_prefix}/${kernel_version%%___*}/%{kmodinstdir_postfix}/drivers/media/i2c/ov02e10.ko
   install -D -m 755 _kmod_build_${kernel_version%%___*}/drivers/media/i2c/ov2740.ko %{buildroot}%{kmodinstdir_prefix}/${kernel_version%%___*}/%{kmodinstdir_postfix}/drivers/media/i2c/ov2740.ko
   install -D -m 755 _kmod_build_${kernel_version%%___*}/drivers/media/pci/intel/ipu6/intel-ipu6-isys.ko %{buildroot}%{kmodinstdir_prefix}/${kernel_version%%___*}/%{kmodinstdir_postfix}/drivers/media/pci/intel/ipu6/intel-ipu6-isys.ko
   install -D -m 755 _kmod_build_${kernel_version%%___*}/drivers/media/pci/intel/ipu6/intel-ipu6-psys.ko %{buildroot}%{kmodinstdir_prefix}/${kernel_version%%___*}/%{kmodinstdir_postfix}/drivers/media/pci/intel/ipu6/intel-ipu6-psys.ko
@@ -105,6 +102,11 @@ done
 
 
 %changelog
+* Fri Jan  5 2024 Matthias Saou <matthias@saou.eu> 0.0-10.20231109git07f0612
+- Update to latest upstream branches.
+- Remove upstreamed patches.
+- Include new hm2172 and ov02e10 modules.
+
 * Sat Nov  4 2023 Hans de Goede <hdegoede@redhat.com> - 0.0-10.20230622git8e41080
 - Add "spi_vsc: Call acpi_dev_clear_dependencies()" patch to fix laptops
   with iVSC chip no longer working with 6.6 kernels
